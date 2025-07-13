@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn 
 import psycopg2
@@ -15,7 +15,7 @@ app = FastAPI(
 while True:
     try:
         conn = psycopg2.connect(host='localhost', database='Esports', user='postgres', password='bap745Wem', cursor_factory=RealDictCursor)
-        cursor = conn.cursor 
+        cursor = conn.cursor()
         print("Database connection was successful")
         break
     except Exception as error:
@@ -44,12 +44,28 @@ async def root():
 async def health_check():
     return {"status": "healthy", "service":"CS Players API"}
 
-@app.get("/player/name")
-def get_player():
-    cursor.execute(""" SLECT name FROM CsPlayers """)
-    player = cursor.fetchall()
-    return {"Player: ", player}
+@app.get("/players") 
+async def get_players():
+    try:
+        cursor.execute(""" SELECT * FROM CsPlayers """)
+        players = cursor.fetchall()
+        if not players:
+            raise HTTPException(status_code=404, detail="Players not found")
+        return {"players": players}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error finding players: {str(e)}") 
 
+@app.get("/player/{player_name}")
+def get_player_by_name(player_name: str):
+    try:
+        cursor.execute(" SELECT * FROM CsPlayers WHERE name = %s", (player_name,))
+        player = cursor.fetchone()
+        if not player:
+            raise HTTPException(status_code=404, detail="Player Not Found")
+        return {"player": player}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error finding player: {str(e)}")
+ 
 @app.get("/stats/{player}")
 async def get_stats(player: str):
     return {"message": f"Stats for {player}"}
