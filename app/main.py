@@ -1,9 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn 
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import time
+from core.database import get_db_connection
 
 
 app = FastAPI(
@@ -12,16 +10,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-while True:
+def get_db_cursor():
+    conn = get_db_connection()
     try:
-        conn = psycopg2.connect(host='localhost', database='Esports', user='postgres', password='bap745Wem', cursor_factory=RealDictCursor)
         cursor = conn.cursor()
-        print("Database connection was successful")
-        break
-    except Exception as error:
-        print("Connection to database failed")
-        print("Error: ", error)
-        time.sleep(5)
+        yield cursor 
+    finally:
+        cursor.close()
+        conn.close()
     
 origin = "http://0.0.0.0:8000/"
 
@@ -47,7 +43,7 @@ async def health_check():
 @app.get("/players") 
 async def get_players():
     try:
-        cursor.execute(""" SELECT * FROM CsPlayers """)
+        cursor.execute(" SELECT * FROM CsPlayers ")
         players = cursor.fetchall()
         if not players:
             raise HTTPException(status_code=404, detail="Players not found")
@@ -66,9 +62,22 @@ def get_player_by_name(player_name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error finding player: {str(e)}")
  
-@app.get("/stats/{player}")
-async def get_stats(player: str):
-    return {"message": f"Stats for {player}"}
+@app.get("/stats/{player_name}")
+async def get_stats(player_name: str):
+    try:
+        cursor.execute(""" 
+                      SELECT p.name, p.team, p.kills, p.deaths, p.kd_ratio, p.headshot_pct, p.image_url 
+                      FROM CsPlayers p 
+                      WHERE p.name = %s 
+                      
+                      """, {player_name,})
+        stats = cursor.fetchone()
+        if not stats:
+            raise HTTPException(status_code=404, detail="Player Stats Not Found")
+        return {"stats", stats}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error finding player stats: {str(e)}")
+        
 
 @app.get("/matches")
 async def get_matches():

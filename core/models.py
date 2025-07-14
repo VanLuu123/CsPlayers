@@ -1,0 +1,35 @@
+from sqlalchemy import Column, Integer, String, Float, DateTime 
+from sqlalchemy.ext.declarative import declartive_base
+from datetime import datetime 
+
+Base = declartive_base()
+
+
+class Player(Base):
+    __tablename__="CsPlayers"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    team = Column(String)
+    kills = Column(Integer)
+    deaths = Column(Integer)
+    kd_ratio = Column(Float)
+    rating = Column(Float)
+    headshot_pct = Column(Float)
+    image_url = Column(String)
+    last_updated = Column(DateTime, default=datetime.UTC)
+    
+class Matches(Base):
+    __tablename__="Matches"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    date = Column(DateTime)
+    team1_name = Column(String)
+    team2_name = Column(String)
+    team1_score = Column(Integer)
+    team2_score = Column(Integer) 
+    map_name = Column(String)
+    match_result = Column(String)
+    
+    
+    
