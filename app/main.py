@@ -1,7 +1,9 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 import uvicorn 
 from core.database import get_db_connection
+from core import schemas, models, database
 
 
 app = FastAPI(
@@ -40,8 +42,9 @@ async def root():
 async def health_check():
     return {"status": "healthy", "service":"CS Players API"}
 
+# Return List of all players
 @app.get("/players") 
-async def get_players():
+async def get_players(cursor = Depends(get_db_cursor)):
     try:
         cursor.execute(" SELECT * FROM CsPlayers ")
         players = cursor.fetchall()
@@ -51,35 +54,20 @@ async def get_players():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error finding players: {str(e)}") 
 
-@app.get("/player/{player_name}")
-def get_player_by_name(player_name: str):
+@app.get("/players/{player_name}", response_model=schemas.PlayerSchema)
+async def get_player(player_name: str, cursor=Depends(get_db_cursor)):
     try:
-        cursor.execute(" SELECT * FROM CsPlayers WHERE name = %s", (player_name,))
+        cursor.execute("SELECT * FROM CsPlayers WHERE name = %s", (player_name,))
         player = cursor.fetchone()
         if not player:
-            raise HTTPException(status_code=404, detail="Player Not Found")
-        return {"player": player}
+            raise HTTPException(status_code=404, detail="Player not found")
+        return player
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error finding player: {str(e)}")
- 
-@app.get("/stats/{player_name}")
-async def get_stats(player_name: str):
-    try:
-        cursor.execute(""" 
-                      SELECT p.name, p.team, p.kills, p.deaths, p.kd_ratio, p.headshot_pct, p.image_url 
-                      FROM CsPlayers p 
-                      WHERE p.name = %s 
-                      
-                      """, {player_name,})
-        stats = cursor.fetchone()
-        if not stats:
-            raise HTTPException(status_code=404, detail="Player Stats Not Found")
-        return {"stats", stats}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error finding player stats: {str(e)}")
+
         
 
-@app.get("/matches")
+@app.get("/matches", response_model=schemas.MatchesSchema)
 async def get_matches():
     return {"message": "matches for today"}
 
