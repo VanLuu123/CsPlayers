@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 import uvicorn 
 from core.database import get_db_connection
 from core import schemas, models, database
+from config import settings
 
 
 app = FastAPI(
@@ -21,11 +22,9 @@ def get_db_cursor():
         cursor.close()
         conn.close()
     
-origin = "http://0.0.0.0:8000/"
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
