@@ -6,3 +6,5 @@ sqlalchemy
 alembic 
 asyncpg 
 psycopg2-binary
+requests
+pandas
