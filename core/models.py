@@ -9,7 +9,8 @@ class Player(Base):
     __tablename__="CsPlayers"
     
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String, index=True)
+    player_id = Column(String, index=True)
     team = Column(String)
     kills = Column(Integer)
     deaths = Column(Integer)

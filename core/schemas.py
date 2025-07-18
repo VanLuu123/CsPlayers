@@ -5,6 +5,7 @@ from datetime import datetime
 class PlayerSchema(BaseModel):
     id: int 
     name: str
+    player_id: str
     team: str
     kills: int 
     deaths: int 
