@@ -1,6 +1,7 @@
 import requests 
 import json
 import pandas 
+from bs4 import BeautifulSoup
 from datetime import datetime
 import time
 from hltv_wrapper.main import top_players, get_players, get_matches, _get_all_teams, _findTeamId
@@ -39,6 +40,22 @@ class HLTVAPICLIENT:
         except Exception as e:
             print(f"Error in get_all_players_from_matches: {e}")
             return {}
+    
+    def get_player_stats(self, player_id: int, player_name: str):
+        """ Get player stats from HLTV stats page """
+        try:
+            url = f"https://www.hltv.org/stats/players/{player_id}/{player_name}"
+            resp = self.session.get(url) 
+            if resp.status_code != 200:
+                print(f"Failed to fetch page for player {player_name} ({player_id})")
+                return None 
+            soup = BeautifulSoup(resp.text, 'html.parser')
+
+            rating = soup.find("div", class_="summaryStatBreakdownContainer").find("div", class_="summaryStat").text.strip() 
+            
+            stats = {}
+            stats_blocks = soup.select()
+
 
     def get_all_players(self):
         """ Get all players from HLTV stats page """
