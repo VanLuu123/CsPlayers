@@ -1,0 +1,3 @@
+[submodule "hltv_wrapper"]
+	path = hltv_wrapper
+	url = https://github.com/SocksPls/hltv-api.git
