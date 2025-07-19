@@ -15,7 +15,7 @@ router = APIRouter(prefix="/players", tags=["Players"])
 
 
 # Return List of all players
-router.get("/", response_model=list[PlayerSchema]) 
+@router.get("/", response_model=list[PlayerSchema]) 
 async def get_players(cursor = Depends(get_db_cursor)):
     try:
         cursor.execute(" SELECT * FROM CsPlayers ")
@@ -26,7 +26,7 @@ async def get_players(cursor = Depends(get_db_cursor)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error finding players: {str(e)}") 
 
-router.get("/{player_name}", response_model=PlayerSchema)
+@router.get("/{player_name}", response_model=PlayerSchema)
 async def get_player(player_name: str, cursor=Depends(get_db_cursor)):
     try:
         cursor.execute("SELECT * FROM CsPlayers WHERE name = %s", (player_name,))

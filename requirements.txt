@@ -8,4 +8,5 @@ asyncpg
 psycopg2-binary
 requests
 pandas
-crawl4ai
+pydantic-settings
+

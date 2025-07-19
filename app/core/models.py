@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime 
-from sqlalchemy.ext.declarative import declartive_base
-from datetime import datetime 
+from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime, timezone
 
-Base = declartive_base()
+Base = declarative_base()
 
 
 class Player(Base):
@@ -18,7 +18,7 @@ class Player(Base):
     rating = Column(Float)
     headshot_pct = Column(Float)
     image_url = Column(String)
-    last_updated = Column(DateTime, default=datetime.UTC)
+    last_updated = Column(DateTime, default=datetime.now(timezone.utc))
     
 class Matches(Base):
     __tablename__="Matches"

@@ -13,6 +13,6 @@ def get_db_cursor():
         
 router = APIRouter(prefix="matches", tags=["Matches"])
 
-router.get("/", response_model=MatchesSchema)
+@router.get("/", response_model=MatchesSchema)
 async def get_matches():
     return {"message": "matches for today"}

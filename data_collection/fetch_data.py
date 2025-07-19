@@ -99,14 +99,18 @@ class HLTVAPICLIENT:
                 if player_data and player_data.get('stats'):
                     stats = player_data['stats']
 
+                    kills = stats.get('Total kills', '0')
+                    deaths = stats.get('Total deaths', '0')
                     headshot_percentage = self._clean_numeric_value(stats.get('headshot_pct', '0'))
-                    kd_ratio = self._clean_numeric_value(stats.get('kd_ratio', '0'))
-                    kills_round = self._clean_numeric_value(stats.get('kills_per_round', '0'))
-                    rating = self._clean_numeric_value(stats.get('rating', '0'))
+                    kd_ratio = stats.get('kd_ratio', '0')
+                    kills_round = stats.get('kills_per_round', '0')
+                    rating = stats.get('rating', '0')
 
                     data.append((
                         player_data['player_id'],
                         player_data['player_name'],
+                        kills,
+                        deaths,
                         headshot_percentage,
                         kd_ratio,
                         kills_round,
@@ -117,14 +121,16 @@ class HLTVAPICLIENT:
                 return 
                     
             execute_values(cur, """
-                INSERT INTO player_stats (player_id, player_name, headshot_pct, kd_ratio, kills_round, rating, last_updated) 
+                INSERT INTO player_stats (player_id, player_name, kills, deaths, headshot_pct, kd_ratio, kills_round, rating, last_updated) 
                 VALUES %s
                 ON CONFLICT (player_id) DO UPDATE SET
-                player_name = EXCLUDED.player_name,
+                player_name = EXCLUDED.player_name, 
+                kills = EXCLUDED.kills,
+                deaths = EXCLUDED.deaths,
                 headshot_pct = EXCLUDED.headshot_pct,
                 kd_ratio = EXCLUDED.kd_ratio,
-                kills_round = EXCLUDED.kills_per_round,
-                rating = EXCLUDED.rating_2_0,
+                kills_round = EXCLUDED.kills_round,
+                rating = EXCLUDED.rating,
                 last_updated = CURRENT_TIMESTAMP
             """, data)
             
@@ -166,6 +172,17 @@ class HLTVAPICLIENT:
             return get_players(team)
         except Exception as e:
             print(f"Error fetching players by team: {e}")
+    
+    def _clean_numeric_value(self, value):
+        """Clean and convert string values to float"""
+        if not value or value == '-':
+            return 0.0
+        # Remove % sign and convert to float
+        cleaned = value.replace('%', '').strip()
+        try:
+            return float(cleaned)
+        except ValueError:
+            return 0.0
 
             
 
