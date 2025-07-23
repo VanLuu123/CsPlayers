@@ -1,7 +1,7 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
-from config import settings
+from app.config import settings
 
 
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends 
-from core.database import get_db_connection 
-from core.schemas import PlayerSchema 
+from app.core.database import get_db_connection 
+from app.core.schemas import PlayerSchema 
 
 def get_db_cursor():
     conn = get_db_connection()

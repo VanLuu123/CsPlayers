@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends 
-from core.database import get_db_connection
-from core.schemas import MatchesSchema
+from fastapi import APIRouter, Depends 
+from app.core.database import get_db_connection
+from app.core.schemas import MatchesSchema
 
 def get_db_cursor():
     conn = get_db_connection()
@@ -11,7 +11,7 @@ def get_db_cursor():
         cursor.close()
         conn.close() 
         
-router = APIRouter(prefix="matches", tags=["Matches"])
+router = APIRouter(prefix="/matches", tags=["Matches"])
 
 @router.get("/", response_model=MatchesSchema)
 async def get_matches():

@@ -1,5 +1,5 @@
 from fastapi import APIRouter 
-from endpoints import players, matches 
+from .endpoints import players, matches 
 
 router = APIRouter() 
 router.include_router(players.router) 

@@ -2,11 +2,11 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import uvicorn 
-from core.database import get_db_connection
-from core import schemas, models, database
-from config import settings
-from api.endpoints import router
-
+from app.core.database import get_db_connection
+from app.core import schemas, models, database
+from app.config import settings
+from app.api.router import router
+from app.api.fetch_router import router as fetch_router
 
 app = FastAPI(
     title="CS Esport Players API",
@@ -50,7 +50,9 @@ async def get_teams():
 async def get_team(team: str):
     return {"message": f"Team Match History : {team}"}
 
+
 app.include_router(router)
+app.include_router(fetch_router, prefix="/api")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

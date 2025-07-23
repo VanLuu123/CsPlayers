@@ -9,4 +9,7 @@ psycopg2-binary
 requests
 pandas
 pydantic-settings
-
+asyncio
+rnet
+tenacity
+selectolax
