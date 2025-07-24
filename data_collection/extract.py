@@ -1,14 +1,16 @@
 import asyncio 
 import logging
 import os
-from rnet import Impersonate, Client, Proxy, BlockingClient
+from rnet import Impersonate, Client, Proxy
 from tenacity import (
     before_log,
     retry,
     stop_after_attempt,
     wait_exponential,
-    before_log,
 )
+from dotenv import load_dotenv 
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,30 +25,24 @@ class Extractor:
             impersonate=Impersonate.Firefox136,
             proxies=[Proxy.http(self.proxy), Proxy.https(self.proxy)],
         )
-        self.blocking = BlockingClient()
-        self.blocking.update(
-            impersonate=Impersonate.Firefox136,
-            proxies=[Proxy.http(self.proxy), Proxy.https(self.proxy)],
-        )
+        logger.info("Session Created.")
 
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_exponential(multiplier=1, min=3, max=10),
         before=before_log(logger, logging.INFO),
     )
-    def extract_players(self, url):
-        logger.info(f"Fetching URL: {url}")
-        resp=self.blocking.get(url)
+    async def fetch_html(self, url):
+        logger.info(f"Async Requesting URL: {url}")
+        resp = await self.session.get(url)
         if resp.status != 200:
             raise Exception(resp.status)
-        return resp.text()
+        return await resp.text()
+        
     
-    def extract_player_data(self, url):
-        logger.info(f"Extracting player data from {url}")
-        resp=self.blocking.get(url)
-        if resp.status != 200:
-            raise Exception(resp.status)
-        return resp.text()
-
-
-if __name__ == "__main__":
+    async def fetch_html_many(self, urls):
+        res = await asyncio.gather(
+            *[self.fetch_html(url) for url in urls],
+            return_exceptions=True,
+        )
+        return res
