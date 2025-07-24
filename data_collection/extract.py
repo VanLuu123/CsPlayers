@@ -34,10 +34,17 @@ class Extractor:
     )
     async def fetch_html(self, url):
         logger.info(f"Async Requesting URL: {url}")
-        resp = await self.session.get(url)
-        if resp.status != 200:
-            raise Exception(resp.status)
-        return await resp.text()
+        try:
+            resp = await self.session.get(url)
+            logger.info(f"Response status for {url}: {resp.status}")
+            if resp.status != 200:
+                raise Exception(f"HTTP Error: {resp.status}")
+            content = await resp.text()
+            logger.info(f"Successfully fetched {url}")
+            return content
+        except Exception as e:
+            logger.error(f"Error fetching {url}: {e}")
+            raise
         
     
     async def fetch_html_many(self, urls):
