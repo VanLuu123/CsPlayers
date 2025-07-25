@@ -17,7 +17,8 @@ class PlayerSchema(BaseModel):
     last_updated: Optional[datetime] = None
 
     class Config:
-        from_attributes = True  # For SQLAlchemy compatibility
+        from_attributes = True  
+        extra = "ignore"
 
 class MatchesSchema(BaseModel):
     id: Optional[int] = None
@@ -35,6 +36,7 @@ class MatchesSchema(BaseModel):
 
     class Config:
         from_attributes = True
+        extra = "ignore"
 
 class PlayersResponse(BaseModel):
     players: list[PlayerSchema]

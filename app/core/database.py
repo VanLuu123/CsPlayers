@@ -14,9 +14,8 @@ def get_db_connection():
                 user=settings.DB_USER, 
                 password=settings.DB_PASS, 
                 cursor_factory=RealDictCursor)
-            cursor = conn.cursor()
             print("Database connection was successful")
-            break
+            return conn
         except Exception as error:
             print("Connection to database failed")
             print("Error: ", error)
