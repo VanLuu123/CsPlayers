@@ -11,17 +11,17 @@ class Loader:
     def __init__(self):
         pass
 
-    async def upsert_players(self, players: List[Dict[str, Any]]):
+    def upsert_players(self, players: List[Dict[str, Any]]):
         if not players:
             logger.info("No players to upsert")
             return None 
         
         upsert_query = """
             INSERT INTO players(id, name, updated_at)
-            VALUES ($1, $2, CURRENT_TIMESTAMP)
+            VALUES (%s, %s, CURRENT_TIMESTAMP)
             ON CONFLICT (id) 
             DO UPDATE SET
-                name = EXCLUDED.name
+                name = EXCLUDED.name,
                 updated_at = EXCLUDED.updated_at 
         """
         conn = None

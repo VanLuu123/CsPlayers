@@ -18,7 +18,6 @@ class PlayerSchema(BaseModel):
 
     class Config:
         from_attributes = True  
-        extra = "ignore"
 
 class MatchesSchema(BaseModel):
     id: Optional[int] = None
@@ -36,7 +35,6 @@ class MatchesSchema(BaseModel):
 
     class Config:
         from_attributes = True
-        extra = "ignore"
 
 class PlayersResponse(BaseModel):
     players: list[PlayerSchema]
