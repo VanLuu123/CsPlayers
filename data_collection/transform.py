@@ -47,3 +47,10 @@ class Parser:
                 continue
                 
         return players
+    
+    def extract_player_stats(self, elements: list):
+        stats = []
+        for element in elements:
+            try:
+                
+        

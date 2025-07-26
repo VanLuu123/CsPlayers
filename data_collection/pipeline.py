@@ -37,7 +37,7 @@ async def main():
         l.upsert_players(all_players)
     else:
         print("No players to save")
-
+    
 
 
 if __name__ == "__main__":
