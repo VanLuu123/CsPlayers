@@ -10,6 +10,15 @@ logger = logging.getLogger(__name__)
 class Loader:
     def __init__(self):
         pass
+    
+    def grab_players(self) -> List[Dict[str, Any]]:
+        conn = get_db_connection()
+        cursor = conn.cursor() 
+        cursor.execute("SELECT id, name from \"CsPlayers\"")
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close() 
+        return [{"id": r[0], "name": r[1]} for r in rows]
 
     def upsert_players(self, players: List[Dict[str, Any]]):
         if not players:
@@ -23,6 +32,7 @@ class Loader:
             DO UPDATE SET
                 name = EXCLUDED.name,
                 last_updated = EXCLUDED.last_updated
+            WHERE "CsPlayers".name IS DISTINCT FROM EXCLUDED.name
         """
         conn = None
         cursor = None

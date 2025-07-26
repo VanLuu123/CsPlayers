@@ -38,12 +38,6 @@ async def main():
     else:
         print("No players to save")
 
-    print("\nSample of players:")
-    for player in all_players[:10]:
-        print(f"  {player}")
-    
-    if len(all_players) > 10:
-        print(f"... and {len(all_players) - 10} more players")
 
 
 if __name__ == "__main__":
