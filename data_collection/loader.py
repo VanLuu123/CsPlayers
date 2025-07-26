@@ -17,12 +17,12 @@ class Loader:
             return None 
         
         upsert_query = """
-            INSERT INTO players(id, name, updated_at)
+            INSERT INTO "CsPlayers"(id, name, last_updated)
             VALUES (%s, %s, CURRENT_TIMESTAMP)
             ON CONFLICT (id) 
             DO UPDATE SET
                 name = EXCLUDED.name,
-                updated_at = EXCLUDED.updated_at 
+                last_updated = EXCLUDED.last_updated
         """
         conn = None
         cursor = None
