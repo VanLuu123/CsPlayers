@@ -8,10 +8,11 @@ e, p, l = Extractor(), Parser(), Loader()
 
 async def main():
     all_players = []
-    urls = [f"{api_base_url}/players?offset={x}" for x in range(0, 312, 52)]
-    print(f"Fetching {len(urls)} pages")
+    player_stats = []
+    players_urls = [f"{api_base_url}/players?offset={x}" for x in range(0, 312, 52)]
+    print(f"Fetching {len(players_urls)} pages")
     
-    html_pages = await e.fetch_html_many(urls)
+    html_pages = await e.fetch_html_many(players_urls)
     successful_pages = 0
 
     for i, html in enumerate(html_pages):
@@ -37,6 +38,21 @@ async def main():
         l.upsert_players(all_players)
     else:
         print("No players to save")
+    
+    stored_players = l.grab_players()
+    try: 
+        for player in stored_players:
+            stats_html = await e.fetch_player_stats(player["id"], player["name"])
+            stats = p.extract_player_stats(stats_html)
+            l.upsert_player_stats(player["id"], stats)
+        print(f"Successfully processed players stats.")
+    except Exception as e:
+        print("Error saving player stats to database.")
+    
+    
+        
+
+
     
 
 

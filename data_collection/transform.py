@@ -48,9 +48,22 @@ class Parser:
                 
         return players
     
-    def extract_player_stats(self, elements: list):
-        stats = []
+    def extract_player_stats(self, elements):
+        stats = {}
+        include_stats= {"Headshot %", "K/D Ratio", "Kills / round", "Deaths / round", "Rating 2.0"}
         for element in elements:
             try:
+                spans = element.css("span")
+                if len(spans) == 2:
+                    key = spans[0].text(strip=True)
+                    value = spans[1].text(strip=True)
+                    if value in include_stats:
+                        stats[key] = value 
+            except Exception as e:
+                print(f"Error extracting player stats: {e}")
+        return stats
+                
+        
+                
                 
         

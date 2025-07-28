@@ -53,3 +53,9 @@ class Extractor:
             return_exceptions=True,
         )
         return res
+    
+    async def fetch_player_stats(self, player_id, player):
+        url=f"https://www.hltv.org/stats/players/{player_id}/{player}"
+        html = await self.fetch_html(url)
+        return html
+        
