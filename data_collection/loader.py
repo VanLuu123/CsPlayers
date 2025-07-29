@@ -78,7 +78,19 @@ class Loader:
         try:
             conn = get_db_connection()
             cursor = conn.cursor() 
-            
+            cursor.execute(upsert_query, (player_id["kills"], player_id["deaths"], player_id["kd_ratio"], player_id["headshot_pct"]))
+            conn.commit()
+            logger.info(f"Successfully upserted player stats for {player_id['name']}")
+        except Exception as e:
+            logger.error(f"Error upserting player stats for {player_id['name']}: {e}")
+            if conn:
+                conn.rollback()
+            raise
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
 
 

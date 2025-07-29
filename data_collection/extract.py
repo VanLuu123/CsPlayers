@@ -20,7 +20,8 @@ class Extractor:
         self.proxy = os.getenv("proxy")
         if not self.proxy:
             raise Exception("No proxy found")
-        self.session = Client()
+        cert_path = os.path.join(os.path.dirname(__file__), "../certs/brightdata-ca.crt")
+        self.session = Client(verify=cert_path)
         self.session.update(
             impersonate=Impersonate.Firefox136,
             proxies=[Proxy.http(self.proxy), Proxy.https(self.proxy)],

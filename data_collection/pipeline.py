@@ -39,14 +39,14 @@ async def main():
         print("No players to save")
     
     stored_players = l.grab_players()
-    
+
     for player in stored_players:
         try:
             stats_html = await e.fetch_player_stats(player["id"], player["name"])
             stats = p.extract_player_stats(stats_html)
             l.upsert_player_stats(player["id"], stats)
-        except Exception as e:
-            print("Error saving player stats to database.")
+        except Exception as error:
+            print(f"Error saving {player['name']} stats to database: {error}")
         print(f"Successfully processed players stats.")
     
     
