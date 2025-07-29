@@ -56,6 +56,29 @@ class Loader:
                 cursor.close()
             if conn:
                 conn.close()
+    
+    def upsert_players_stats(self, player_id: int):
+        if not player_id:
+            logger.info("No player stats to upsert.")
+            return None 
+
+        upsert_query = """
+            INSERT INTO "CsPlayers"(kills, deaths, kd_ratio, headshot_pct, last_updated)
+            VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP)
+            ON CONFLICT(player_id)
+            DO UPDATE SET
+                kills = EXCLUDED.kills
+                deaths = EXCLUDED.deaths
+                kd_ratio = EXCLUDED.kd_ratio
+                headshot_pct = EXCLUDED.headshot_pct
+                last_updated = EXCLUDED.last_updated 
+        """
+        conn = None
+        cursor = None 
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor() 
+            
 
 
 
