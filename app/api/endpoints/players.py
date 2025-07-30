@@ -1,6 +1,10 @@
-from fastapi import APIRouter, HTTPException, Depends 
+from fastapi import APIRouter, Depends 
 from app.core.database import get_db_connection 
 from app.core.schemas import PlayerSchema 
+from sqlalchemy.orm import Session
+from app.core.models import CsPlayers
+from app.core.exceptions import handle_database_error
+from psycopg2 import DatabaseError  
 
 def get_db_cursor():
     conn = get_db_connection()
@@ -16,26 +20,22 @@ router = APIRouter(prefix="/players", tags=["Players"])
 
 # Return List of all players
 @router.get("/", response_model=list[PlayerSchema]) 
-async def get_players(cursor = Depends(get_db_cursor)):
+async def get_players(db: Session = Depends(get_db_cursor)):
     try:
-        cursor.execute(" SELECT * FROM CsPlayers ")
-        players = cursor.fetchall()
-        if not players:
-            raise HTTPException(status_code=404, detail="Players not found")
-        return {"players": players}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error finding players: {str(e)}") 
+        players = db.query(CsPlayers).all()
+        return players
+    except DatabaseError as e:
+        handle_database_error(e, "fetching all players")
 
 @router.get("/{player_name}", response_model=PlayerSchema)
-async def get_player(player_name: str, cursor=Depends(get_db_cursor)):
+async def get_player(player_name: str, db: Session = Depends(get_db_cursor)):
     try:
-        cursor.execute("SELECT * FROM CsPlayers WHERE name = %s", (player_name,))
-        player = cursor.fetchone()
+        player = db.query(CsPlayers).filter(CsPlayers.name == player_name).first()
         if not player:
-            raise HTTPException(status_code=404, detail="Player not found")
+            print(f"Player {player_name} not found")
         return player
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error finding player: {str(e)}")
+    except DatabaseError as e:
+        handle_database_error(e, "fetching player")
     
     
     

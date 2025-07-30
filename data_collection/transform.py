@@ -57,7 +57,7 @@ class Parser:
                 if len(spans) == 2:
                     key = spans[0].text(strip=True)
                     value = spans[1].text(strip=True)
-                    if value in include_stats:
+                    if key in include_stats:
                         stats[key] = value 
             except Exception as e:
                 print(f"Error extracting player stats: {e}")
