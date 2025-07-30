@@ -2,6 +2,9 @@ from .extract import Extractor
 from .transform import Parser 
 from .loader import Loader 
 import asyncio 
+from app.core.exceptions import handle_database_error
+from psycopg2 import DatabaseError
+
 
 api_base_url = "https://www.hltv.org"
 e, p, l = Extractor(), Parser(), Loader()
@@ -45,8 +48,8 @@ async def main():
             stats_html = await e.fetch_player_stats(player["id"], player["name"])
             stats = p.extract_player_stats(stats_html)
             l.upsert_player_stats(player["id"], stats)
-        except Exception as error:
-            print(f"Error saving {player['name']} stats to database: {error}")
+        except DatabaseError as error:
+            handle_database_error(error, "saving player stats")
         print(f"Successfully processed players stats.")
     
     

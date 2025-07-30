@@ -1,4 +1,7 @@
 from selectolax.parser import HTMLParser
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Parser:
     def __init__(self):
@@ -23,7 +26,7 @@ class Parser:
                 
                 url_parts = href.split("/")
                 if len(url_parts) < 3:
-                    print(f"Skipping malformed URL: {href}")
+                    logger.warning(f"Skipping malformed URL: {href}")
                     continue
                     
                 player_id = url_parts[2]
@@ -34,13 +37,13 @@ class Parser:
                     player = player_name.text(strip=True)
                 else:
                     player = element.text(strip=True)
-                    print(f"Using fallback text extraction for player: {player}")
+                    logger.warning(f"Using fallback text extraction for player: {player}")
                 
                 if player:
                     players.append({"id": player_id, "name": player})
                     print(f"Extracted player: ID={player_id}, Name={player}")
                 else:
-                    print(f"Could not extract name for href: {href}")
+                    logger.error(f"Could not extract name for href: {href}")
                     
             except Exception as e:
                 print(f"Error processing element: {e}")
@@ -49,6 +52,8 @@ class Parser:
         return players
     
     def extract_player_stats(self, elements):
+        if not elements:
+            logger.warning("No elements to extract player stats from.")
         stats = {}
         include_stats= {"Headshot %", "K/D Ratio", "Kills / round", "Deaths / round", "Rating 2.0"}
         for element in elements:
@@ -59,8 +64,8 @@ class Parser:
                     value = spans[1].text(strip=True)
                     if key in include_stats:
                         stats[key] = value 
-            except Exception as e:
-                print(f"Error extracting player stats: {e}")
+            except Exception:
+                logger.exception(f"Error extracting player stats.")
         return stats
                 
         
