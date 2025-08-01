@@ -1,8 +1,7 @@
-import asyncio 
 import logging
-import os 
-from typing import List, Dict, Any, Optional 
-from app.core.database import get_db_connection
+from typing import List, Dict, Any
+from app.core.database import SessionLocal 
+from sqlalchemy.orm import Session 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -10,6 +9,10 @@ logger = logging.getLogger(__name__)
 class Loader:
     def __init__(self):
         pass
+
+    def get_db_session(self) -> Session:
+        """ Get a database session """
+        return SessionLocal()
     
     def grab_players(self) -> List[Dict[str, Any]]:
         conn = get_db_connection()
