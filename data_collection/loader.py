@@ -2,6 +2,9 @@ import logging
 from typing import List, Dict, Any
 from app.core.database import SessionLocal 
 from sqlalchemy.orm import Session 
+from app.repositories.player_repository import PlayerRepository
+from app.core.exceptions import handle_database_error
+from psycopg2 import DatabaseError
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,85 +18,63 @@ class Loader:
         return SessionLocal()
     
     def grab_players(self) -> List[Dict[str, Any]]:
-        conn = get_db_connection()
-        cursor = conn.cursor() 
-        cursor.execute("SELECT id, name from \"CsPlayers\"")
-        rows = cursor.fetchall()
-        cursor.close()
-        conn.close() 
-        return [{"id": r[0], "name": r[1]} for r in rows]
+        db = self.get_db_session()
+        try:
+            player_repo = PlayerRepository(db)
+            players = player_repo.get_all()
+            return [{"id": player.player_id, "name": player.name} for player in players]
+        except DatabaseError as e:
+            handle_database_error(DatabaseError, "fetching all players")
+            raise
+        finally:
+            db.close()
 
     def upsert_players(self, players: List[Dict[str, Any]]):
         if not players:
             logger.info("No players to upsert")
-            return None 
+            return 
         
-        upsert_query = """
-            INSERT INTO "CsPlayers"(id, name, last_updated)
-            VALUES (%s, %s, CURRENT_TIMESTAMP)
-            ON CONFLICT (id) 
-            DO UPDATE SET
-                name = EXCLUDED.name,
-                last_updated = EXCLUDED.last_updated
-            WHERE "CsPlayers".name IS DISTINCT FROM EXCLUDED.name
-        """
-        conn = None
-        cursor = None
+        db = self.get_db_session()
         try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
+            player_repo = PlayerRepository(db)
+            
             for player in players:
                 if not player.get("id") or not player.get("name"):
-                    logger.warning(f"Skipping invalid player data: {player}")
+                    logger.warning(f"Skipping invalid player: {player}")
                     continue 
-                cursor.execute(upsert_query, (player["id"], player["name"]))
-            conn.commit()
-            logger.info(f"Successfully processed players")
-        except Exception as e:
-            logger.error(f"Error upserting players: {e}")
-            if conn:
-                conn.rollback()
-            raise
+                
+                upsert_query = {
+                    "player_id": str(player["id"]),
+                    "name": player["name"],
+                }
+                player_repo.upsert(upsert_query)
+            logger.info(f"Successfully processed {len(players)} players.")
+        except DatabaseError as e:
+            handle_database_error("upserting players")
+            raise 
         finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
+            db.close()
     
-    def upsert_players_stats(self, player_id: int):
-        if not player_id:
+    def upsert_players_stats(self, player_id: int, stats):
+        if not player_id or stats:
             logger.info("No player stats to upsert.")
             return None 
-
-        upsert_query = """
-            INSERT INTO "CsPlayers"(kills, deaths, kd_ratio, headshot_pct, last_updated)
-            VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP)
-            ON CONFLICT(player_id)
-            DO UPDATE SET
-                kills = EXCLUDED.kills
-                deaths = EXCLUDED.deaths
-                kd_ratio = EXCLUDED.kd_ratio
-                headshot_pct = EXCLUDED.headshot_pct
-                last_updated = EXCLUDED.last_updated 
-        """
-        conn = None
-        cursor = None 
+        
+        db = self.get_db_session()
         try:
-            conn = get_db_connection()
-            cursor = conn.cursor() 
-            cursor.execute(upsert_query, (player_id["kills"], player_id["deaths"], player_id["kd_ratio"], player_id["headshot_pct"]))
-            conn.commit()
-            logger.info(f"Successfully upserted player stats for {player_id['name']}")
+            player_repo = PlayerRepository(db)
+            player = player_repo.get_by_hltv_id(str(player_id))
+            if not player:
+                logger.warning(f"Player with HLTV ID {player_id} not found")
+                return
+            
+            player_repo.update(player, stats)
+            logger.info(f"Successfully updated stats for player: {player.name}")
+            
         except Exception as e:
-            logger.error(f"Error upserting player stats for {player_id['name']}: {e}")
-            if conn:
-                conn.rollback()
+            logger.error(f"Error upserting player stats: {e}")
             raise
         finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
-
+            db.close()
 
 
