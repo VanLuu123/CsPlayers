@@ -1,7 +1,7 @@
 import asyncio 
 import logging
 import os
-from rnet import Impersonate, Client, Proxy
+from rnet import Impersonate, Client
 from tenacity import (
     before_log,
     retry,
@@ -17,16 +17,18 @@ logger = logging.getLogger(__name__)
 
 class Extractor:
     def __init__(self):
-        self.proxy = os.getenv("proxy")
-        if not self.proxy:
-            raise Exception("No proxy found")
-        cert_path = os.path.join(os.path.dirname(__file__), "../certs/brightdata-ca.crt")
-        self.session = Client(verify=cert_path)
+        self.api_key = os.getenv("SCRAPERAPI_KEY")
+        if not self.api_key:
+            raise Exception("No ScraperAPI key found in environment variables")
+        self.base_url = "https://api.scraperapi.com"
+        self.session = Client()
         self.session.update(
             impersonate=Impersonate.Firefox136,
-            proxies=[Proxy.http(self.proxy), Proxy.https(self.proxy)],
         )
         logger.info("Session Created.")
+
+    def build_scraperapi_url(self, target_url: str) -> str:
+        return f"{self.base_url}?api_key={self.api_key}&url={target_url}"   
 
     @retry(
         stop=stop_after_attempt(5),
@@ -34,7 +36,8 @@ class Extractor:
         before=before_log(logger, logging.INFO),
     )
     async def fetch_html(self, url):
-        logger.info(f"Async Requesting URL: {url}")
+        full_url = self.build_scraperapi_url(url)
+        logger.info(f"Requesting through ScraperAPI: {full_url}")
         try:
             resp = await self.session.get(url)
             logger.info(f"Response status for {url}: {resp.status}")
